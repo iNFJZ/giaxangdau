@@ -390,6 +390,22 @@
   .region-tab.active { background: var(--amber); color: #0a0c10; }
   .region-tab:hover:not(.active) { color: var(--text); }
 
+  .ad-slot { background:var(--bg3); border:1px dashed var(--border2); border-radius:10px; padding:16px; text-align:center; color:var(--faint); font-size:11px; font-family:'IBM Plex Mono',monospace; margin:24px 0; min-height:90px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .ad-slot-lg { min-height:250px; }
+  .nav-links { display:flex; gap:20px; margin-top:10px; flex-wrap:wrap; }
+  .nav-links a { color:var(--amber); text-decoration:none; font-size:13px; font-family:'IBM Plex Mono',monospace; transition:opacity 0.2s; }
+  .nav-links a:hover { opacity:0.7; }
+  .promo-section { margin:32px 0; }
+  .promo-section .section-title { margin-bottom:4px; }
+  .promo-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; margin-top:16px; }
+  .promo-card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:20px; transition:border-color 0.2s; }
+  .promo-card:hover { border-color:var(--amber); }
+  .promo-card .promo-icon { font-size:28px; margin-bottom:10px; }
+  .promo-card h3 { font-size:14px; font-weight:600; margin-bottom:6px; }
+  .promo-card p { font-size:12px; color:var(--muted); margin-bottom:12px; line-height:1.5; }
+  .promo-link { display:inline-block; font-size:12px; color:var(--amber); text-decoration:none; font-weight:500; padding:6px 14px; border:1px solid var(--amber); border-radius:6px; transition:all 0.2s; }
+  .promo-link:hover { background:var(--amber); color:#0a0c10; }
+
   .settings-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; }
   .settings-overlay.open { display:block; }
   .settings-panel { position:fixed; top:0; right:-360px; width:340px; height:100%; background:var(--bg2); border-left:1px solid var(--border2); z-index:101; padding:28px 24px; transition:right 0.3s; overflow-y:auto; }
@@ -491,6 +507,9 @@
     <div class="ai-text" id="ai-summary">Đang phân tích diễn biến thị trường xăng dầu...</div>
   </div>
 
+  <!-- Ad Slot 1: After summary -->
+  <div class="ad-slot ad-slot-horizontal" id="ad-slot-1">Quảng cáo — Liên hệ hợp tác: <a href="hop-tac.html" style="color:var(--amber)">tại đây</a></div>
+
   <!-- Fuel Cards -->
   <div class="section-header">
     <div class="section-title">Giá bán lẻ hiện tại</div>
@@ -530,6 +549,9 @@
     </div>
   </div>
 
+  <!-- Ad Slot 2: Between summary and charts -->
+  <div class="ad-slot ad-slot-horizontal" id="ad-slot-2">Quảng cáo — Liên hệ hợp tác: <a href="hop-tac.html" style="color:var(--amber)">tại đây</a></div>
+
   <!-- Bar comparison -->
   <div class="chart-card">
     <div class="section-header" style="margin-bottom:0">
@@ -543,12 +565,51 @@
     </div>
   </div>
 
+  <!-- Ad Slot 3: Before history chart -->
+  <div class="ad-slot ad-slot-lg" id="ad-slot-3">Quảng cáo — Liên hệ hợp tác: <a href="hop-tac.html" style="color:var(--amber)">tại đây</a></div>
+
   <!-- Price history chart -->
   <div class="chart-card">
     <div class="chart-title">Biến động giá — các kỳ điều hành 2026</div>
     <div class="chart-sub">Nguồn: Liên Bộ Công Thương – Tài chính · Đơn vị: đồng/lít</div>
     <div class="chart-wrap">
       <canvas id="historyChart" role="img" aria-label="Biểu đồ biến động giá xăng dầu qua các kỳ điều hành năm 2026">RON 95 và E5 RON 92 biến động qua các kỳ điều hành</canvas>
+    </div>
+  </div>
+
+  <!-- Promotions / Affiliate -->
+  <div class="promo-section">
+    <div class="section-header">
+      <div class="section-title">Tiết kiệm chi phí nhiên liệu</div>
+      <div class="section-badge">Khuyến mãi</div>
+    </div>
+    <div class="promo-grid">
+      <div class="promo-card">
+        <div class="promo-icon">🛡️</div>
+        <h3>Bảo hiểm xe máy, ô tô</h3>
+        <p>Mua bảo hiểm online giảm đến 30%. Bảo Việt, PVI, MIC — nhận ngay giấy chứng nhận điện tử.</p>
+        <a class="promo-link" href="#" target="_blank" rel="noopener">Tìm hiểu thêm →</a>
+      </div>
+      <div class="promo-card">
+        <div class="promo-icon">💳</div>
+        <h3>Thẻ tín dụng hoàn tiền xăng</h3>
+        <p>Hoàn tiền 3-5% mỗi lần đổ xăng với thẻ VPBank, Techcombank. Không phí thường niên năm đầu.</p>
+        <a class="promo-link" href="#" target="_blank" rel="noopener">So sánh thẻ →</a>
+      </div>
+      <div class="promo-card">
+        <div class="promo-icon">📱</div>
+        <h3>App đổ xăng tích điểm</h3>
+        <p>PVOIL Easy & Petrolimex — tích điểm đổi quà, thanh toán không tiền mặt, tra cứu cây xăng gần nhất.</p>
+        <a class="promo-link" href="#" target="_blank" rel="noopener">Tải app →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation links -->
+  <div style="margin:32px 0 24px">
+    <div class="nav-links">
+      <a href="meo-tiet-kiem-xang.html">📖 Mẹo tiết kiệm xăng</a>
+      <a href="hop-tac.html">🤝 Hợp tác quảng cáo</a>
     </div>
   </div>
 

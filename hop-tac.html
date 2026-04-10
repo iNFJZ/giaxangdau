@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hợp Tác Quảng Cáo — Giá Xăng Dầu</title>
+<meta name="description" content="Đặt quảng cáo trên trang Giá Xăng Dầu — tiếp cận hàng nghìn người dùng quan tâm đến xăng dầu, ô tô, xe máy mỗi ngày.">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10; --bg2: #111318; --bg3: #181c24;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+    --amber: #f5a623; --amber-dim: rgba(245,166,35,0.12);
+    --green: #3ecf8e; --green-dim: rgba(62,207,142,0.12);
+    --text: #e8eaf0; --muted: #7a8099; --faint: #3d4258;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; font-size: 15px; line-height: 1.7; min-height: 100vh; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px 60px; }
+  header { border-bottom: 1px solid var(--border2); padding: 20px 0 18px; margin-bottom: 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+  .logo-icon { width: 36px; height: 36px; background: var(--amber); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .logo-text { font-size: 16px; font-weight: 600; }
+  .logo-sub { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; margin-top: 1px; }
+  .back-link { color: var(--amber); text-decoration: none; font-size: 13px; font-family: 'IBM Plex Mono', monospace; }
+  .back-link:hover { opacity: 0.7; }
+  h1 { font-size: 28px; font-weight: 600; line-height: 1.3; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+  h2 { font-size: 18px; font-weight: 600; margin: 32px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin: 24px 0; }
+  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-align: center; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--amber); margin-bottom: 4px; }
+  .stat-label { font-size: 12px; color: var(--muted); }
+  .ad-plan { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .ad-plan-info h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .ad-plan-info p { font-size: 13px; color: var(--muted); }
+  .ad-plan-price { text-align: right; }
+  .ad-plan-price .price { font-size: 22px; font-weight: 700; color: var(--green); }
+  .ad-plan-price .period { font-size: 12px; color: var(--muted); }
+  .ad-positions { margin: 20px 0; }
+  .ad-pos { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; }
+  .ad-pos-icon { font-size: 20px; }
+  .ad-pos-name { font-size: 14px; font-weight: 500; }
+  .ad-pos-size { font-size: 12px; color: var(--muted); margin-left: auto; font-family: 'IBM Plex Mono', monospace; }
+  .audience-list { list-style: none; }
+  .audience-list li { padding: 8px 0; font-size: 14px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .audience-list li::before { content: '→ '; color: var(--amber); }
+  .contact-box { background: var(--amber-dim); border: 1px solid var(--amber); border-radius: 12px; padding: 28px; margin: 32px 0; }
+  .contact-box h3 { font-size: 18px; margin-bottom: 16px; }
+  .contact-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; }
+  .contact-item .icon { font-size: 18px; }
+  .contact-item a { color: var(--amber); text-decoration: none; }
+  .contact-item a:hover { opacity: 0.7; }
+  footer { border-top: 1px solid var(--border); padding: 24px 0; color: var(--faint); font-size: 11px; font-family: 'IBM Plex Mono', monospace; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  footer a { color: var(--amber); text-decoration: none; }
+  @media (max-width: 600px) { h1 { font-size: 22px; } .ad-plan { flex-direction: column; align-items: flex-start; } .ad-plan-price { text-align: left; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="index.html" class="logo">
+      <div class="logo-icon">⛽</div>
+      <div>
+        <div class="logo-text">Giá Xăng Dầu</div>
+        <div class="logo-sub">giaxangdau.pages.dev</div>
+      </div>
+    </a>
+    <a href="index.html" class="back-link">← Xem giá xăng dầu</a>
+  </header>
+
+  <h1>Hợp Tác Quảng Cáo</h1>
+  <p class="subtitle">Tiếp cận đúng đối tượng khách hàng quan tâm đến xăng dầu, ô tô, xe máy</p>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">24/7</div>
+      <div class="stat-label">Cập nhật liên tục</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">100%</div>
+      <div class="stat-label">Đối tượng liên quan</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">3</div>
+      <div class="stat-label">Vị trí quảng cáo</div>
+    </div>
+  </div>
+
+  <h2>Đối tượng người dùng</h2>
+  <ul class="audience-list">
+    <li>Người đi xe máy, ô tô — tra cứu giá xăng trước khi đổ</li>
+    <li>Tài xế Grab, Be, taxi — theo dõi chi phí nhiên liệu hàng ngày</li>
+    <li>Doanh nghiệp vận tải — quản lý chi phí nhiên liệu đội xe</li>
+    <li>Nhà đầu tư — theo dõi biến động giá dầu thế giới</li>
+    <li>Người dùng phổ thông — quan tâm giá cả sinh hoạt</li>
+  </ul>
+
+  <h2>Vị trí quảng cáo</h2>
+  <div class="ad-positions">
+    <div class="ad-pos">
+      <span class="ad-pos-icon">🔝</span>
+      <span class="ad-pos-name">Banner trên — sau phân tích AI</span>
+      <span class="ad-pos-size">728×90</span>
+    </div>
+    <div class="ad-pos">
+      <span class="ad-pos-icon">📊</span>
+      <span class="ad-pos-name">Banner giữa — giữa thống kê và biểu đồ</span>
+      <span class="ad-pos-size">728×90</span>
+    </div>
+    <div class="ad-pos">
+      <span class="ad-pos-icon">📈</span>
+      <span class="ad-pos-name">Banner lớn — trước biểu đồ lịch sử</span>
+      <span class="ad-pos-size">300×250</span>
+    </div>
+  </div>
+
+  <h2>Bảng giá quảng cáo</h2>
+
+  <div class="ad-plan">
+    <div class="ad-plan-info">
+      <h3>Gói Cơ Bản</h3>
+      <p>1 vị trí banner (728×90) · Hiển thị toàn trang</p>
+    </div>
+    <div class="ad-plan-price">
+      <div class="price">500K</div>
+      <div class="period">VND / tháng</div>
+    </div>
+  </div>
+
+  <div class="ad-plan">
+    <div class="ad-plan-info">
+      <h3>Gói Nâng Cao</h3>
+      <p>2 vị trí banner · Ưu tiên vị trí đầu trang</p>
+    </div>
+    <div class="ad-plan-price">
+      <div class="price">900K</div>
+      <div class="period">VND / tháng</div>
+    </div>
+  </div>
+
+  <div class="ad-plan">
+    <div class="ad-plan-info">
+      <h3>Gói Toàn Diện</h3>
+      <p>Tất cả 3 vị trí · Bài viết tài trợ · Logo tại footer</p>
+    </div>
+    <div class="ad-plan-price">
+      <div class="price">1.5M</div>
+      <div class="period">VND / tháng</div>
+    </div>
+  </div>
+
+  <h2>Ngành nghề phù hợp</h2>
+  <ul class="audience-list">
+    <li>Cây xăng, đại lý xăng dầu — quảng bá vị trí, khuyến mãi</li>
+    <li>Bảo hiểm xe — tiếp cận chủ xe máy, ô tô</li>
+    <li>Ngân hàng — thẻ tín dụng hoàn tiền xăng</li>
+    <li>Phụ kiện ô tô, xe máy — sản phẩm liên quan</li>
+    <li>Dịch vụ sửa chữa, bảo dưỡng xe</li>
+    <li>Ứng dụng gọi xe, vận chuyển</li>
+  </ul>
+
+  <div class="contact-box">
+    <h3>Liên hệ hợp tác</h3>
+    <div class="contact-item">
+      <span class="icon">📧</span>
+      <span>Email: <a href="mailto:contact@giaxangdau.pages.dev">contact@giaxangdau.pages.dev</a></span>
+    </div>
+    <div class="contact-item">
+      <span class="icon">📱</span>
+      <span>Zalo / Điện thoại: <strong>Liên hệ qua email</strong></span>
+    </div>
+    <div class="contact-item">
+      <span class="icon">⏱️</span>
+      <span>Phản hồi trong vòng <strong>24 giờ</strong></span>
+    </div>
+  </div>
+
+  <footer>
+    <span><a href="index.html">Giá xăng dầu</a> · <a href="meo-tiet-kiem-xang.html">Mẹo tiết kiệm</a></span>
+    <span>© 2026 giaxangdau.pages.dev</span>
+  </footer>
+</div>
+</body>
+</html>
