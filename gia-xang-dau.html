@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giá Xăng Dầu Việt Nam — Cập nhật thời gian thực</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #111318;
+    --bg3: #181c24;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --amber: #f5a623;
+    --amber-dim: rgba(245,166,35,0.12);
+    --amber-glow: rgba(245,166,35,0.25);
+    --green: #3ecf8e;
+    --green-dim: rgba(62,207,142,0.12);
+    --red: #f56060;
+    --red-dim: rgba(245,96,96,0.12);
+    --blue: #5b9cf6;
+    --blue-dim: rgba(91,156,246,0.12);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.12);
+    --text: #e8eaf0;
+    --muted: #7a8099;
+    --faint: #3d4258;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* Grid lines */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 60px; position: relative; z-index: 1; }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border2);
+    padding: 20px 0 18px;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--amber);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .logo-sub { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; margin-top: 1px; }
+
+  .header-right { display: flex; align-items: center; gap: 16px; }
+
+  .sync-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted);
+  }
+
+  .pulse {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  .pulse.loading { background: var(--amber); animation: pulse-fast 0.6s infinite; }
+  .pulse.error { background: var(--red); animation: none; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+  @keyframes pulse-fast {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .btn-refresh {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-refresh:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+  .btn-refresh:active { transform: scale(0.97); }
+  .btn-refresh svg { transition: transform 0.5s; }
+  .btn-refresh.spinning svg { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Fuel cards grid */
+  .fuel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 36px;
+  }
+
+  .fuel-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 20px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s, transform 0.2s;
+    cursor: default;
+  }
+  .fuel-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+  .fuel-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+  }
+  .fuel-card.c-amber::before { background: var(--amber); }
+  .fuel-card.c-green::before { background: var(--green); }
+  .fuel-card.c-blue::before { background: var(--blue); }
+  .fuel-card.c-purple::before { background: var(--purple); }
+
+  .fuel-type {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .fuel-card.c-amber .fuel-type { color: var(--amber); }
+  .fuel-card.c-green .fuel-type { color: var(--green); }
+  .fuel-card.c-blue .fuel-type { color: var(--blue); }
+  .fuel-card.c-purple .fuel-type { color: var(--purple); }
+
+  .fuel-name { font-size: 14px; color: var(--muted); margin-bottom: 12px; font-weight: 400; }
+
+  .fuel-price {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .fuel-unit { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+
+  .fuel-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .fuel-change.up { color: var(--green); background: var(--green-dim); }
+  .fuel-change.down { color: var(--red); background: var(--red-dim); }
+  .fuel-change.neutral { color: var(--muted); background: rgba(122,128,153,0.1); }
+
+  .fuel-meta {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--faint);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg3) 25%, var(--bg2) 50%, var(--bg3) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+    height: 1em;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Chart section */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .section-badge {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--amber);
+    background: var(--amber-dim);
+    border: 1px solid rgba(245,166,35,0.2);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .chart-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .chart-title { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .chart-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+
+  .chart-wrap { position: relative; height: 240px; }
+
+  /* Summary row */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .summary-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+
+  .summary-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .summary-value { font-size: 20px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+  .summary-note { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* AI summary box */
+  .ai-box {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--amber);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 20px;
+  }
+
+  .ai-label {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--amber);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ai-text { font-size: 14px; color: var(--muted); line-height: 1.7; }
+  .ai-text strong { color: var(--text); font-weight: 500; }
+
+  /* Comparison bar */
+  .compare-section { margin-bottom: 20px; }
+  .compare-item { margin-bottom: 16px; }
+  .compare-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .compare-name { color: var(--text); }
+  .compare-val { font-family: 'IBM Plex Mono', monospace; color: var(--muted); font-size: 12px; }
+  .compare-bar-bg { background: var(--bg3); border-radius: 4px; height: 6px; overflow: hidden; }
+  .compare-bar { height: 6px; border-radius: 4px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--faint);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Timestamp chip */
+  .timestamp {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Tooltip popup */
+  .tooltip-wrap { position: relative; }
+  .tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    white-space: nowrap;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10;
+  }
+  .tooltip-wrap:hover .tooltip { opacity: 1; }
+
+  .region-tabs { display: flex; gap: 0; background: var(--bg3); border-radius: 8px; padding: 3px; border: 1px solid var(--border); }
+  .region-tab { padding: 6px 16px; font-size: 12px; font-family: 'Sora', sans-serif; border: none; background: transparent; color: var(--muted); cursor: pointer; border-radius: 6px; transition: all 0.2s; font-weight: 500; white-space: nowrap; }
+  .region-tab.active { background: var(--amber); color: #0a0c10; }
+  .region-tab:hover:not(.active) { color: var(--text); }
+
+  .settings-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; }
+  .settings-overlay.open { display:block; }
+  .settings-panel { position:fixed; top:0; right:-360px; width:340px; height:100%; background:var(--bg2); border-left:1px solid var(--border2); z-index:101; padding:28px 24px; transition:right 0.3s; overflow-y:auto; }
+  .settings-panel.open { right:0; }
+  .settings-title { font-size:15px; font-weight:600; margin-bottom:24px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+  .settings-field { margin-bottom:20px; }
+  .settings-field label { display:block; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; }
+  .settings-field input, .settings-field select { width:100%; padding:10px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-family:'IBM Plex Mono',monospace; outline:none; }
+  .settings-field input:focus, .settings-field select:focus { border-color:var(--amber); }
+  .settings-hint { font-size:11px; color:var(--faint); margin-top:6px; }
+  .settings-hint a { color:var(--amber); text-decoration:none; }
+  .btn-save { width:100%; padding:10px; background:var(--amber); color:#0a0c10; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Sora',sans-serif; margin-top:8px; }
+  .btn-save:hover { opacity:0.9; }
+
+  @media (max-width: 600px) {
+    .fuel-grid { grid-template-columns: 1fr 1fr; }
+    .fuel-price { font-size: 22px; }
+    header { flex-direction: column; align-items: flex-start; }
+  }
+  @media (max-width: 380px) {
+    .fuel-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⛽</div>
+      <div>
+        <div class="logo-text">Giá Xăng Dầu</div>
+        <div class="logo-sub">Cập nhật theo kỳ điều hành Liên Bộ</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="sync-status">
+        <div class="pulse" id="pulse"></div>
+        <span id="sync-label">Đang tải...</span>
+        <span id="countdown" style="margin-left:6px;color:var(--faint)"></span>
+      </div>
+      <button class="btn-refresh" id="btn-refresh" onclick="fetchPrices(true)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        Làm mới
+      </button>
+      <button class="btn-refresh" onclick="toggleSettings()" title="Cài đặt" style="font-size:15px;line-height:1">⚙</button>
+    </div>
+  </header>
+
+  <!-- AI Summary -->
+  <div class="ai-box" id="ai-box">
+    <div class="ai-label">
+      <span>⚡</span> Phân tích thị trường — AI
+    </div>
+    <div class="ai-text" id="ai-summary">Đang phân tích diễn biến thị trường xăng dầu...</div>
+  </div>
+
+  <!-- Fuel Cards -->
+  <div class="section-header">
+    <div class="section-title">Giá bán lẻ hiện tại</div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div class="region-tabs">
+        <button class="region-tab active" data-region="v1" onclick="setRegion('v1')">Vùng 1</button>
+        <button class="region-tab" data-region="v2" onclick="setRegion('v2')">Vùng 2</button>
+      </div>
+      <div class="section-badge" id="price-date">Nguồn: Liên Bộ CT–TC</div>
+    </div>
+  </div>
+
+  <div class="fuel-grid" id="fuel-grid">
+    <!-- Cards inserted by JS -->
+    <div class="fuel-card c-amber"><div class="skeleton" style="width:60%;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:2em;margin-bottom:8px;"></div><div class="skeleton" style="width:40%;"></div></div>
+    <div class="fuel-card c-green"><div class="skeleton" style="width:60%;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:2em;margin-bottom:8px;"></div><div class="skeleton" style="width:40%;"></div></div>
+    <div class="fuel-card c-blue"><div class="skeleton" style="width:60%;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:2em;margin-bottom:8px;"></div><div class="skeleton" style="width:40%;"></div></div>
+    <div class="fuel-card c-purple"><div class="skeleton" style="width:60%;margin-bottom:10px;"></div><div class="skeleton" style="width:80%;height:2em;margin-bottom:8px;"></div><div class="skeleton" style="width:40%;"></div></div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="summary-grid" id="summary-grid" style="display:none">
+    <div class="summary-card">
+      <div class="summary-label">Chênh lệch RON95 — E5</div>
+      <div class="summary-value" id="diff-val">—</div>
+      <div class="summary-note">đồng/lít khuyến khích sinh học</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Dầu Brent (tham chiếu)</div>
+      <div class="summary-value" id="brent-val">—</div>
+      <div class="summary-note">USD/thùng, thị trường quốc tế</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Kỳ điều hành tiếp theo</div>
+      <div class="summary-value" id="next-adjust">—</div>
+      <div class="summary-note">Dự kiến theo chu kỳ 10 ngày</div>
+    </div>
+  </div>
+
+  <!-- Bar comparison -->
+  <div class="chart-card">
+    <div class="section-header" style="margin-bottom:0">
+      <div>
+        <div class="chart-title">So sánh các loại nhiên liệu</div>
+        <div class="chart-sub">Tỷ lệ giá tương đối (đồng/lít)</div>
+      </div>
+    </div>
+    <div style="margin-top:20px" class="compare-section" id="compare-bars">
+      <div style="color:var(--muted);font-size:13px;text-align:center;padding:30px">Đang tải dữ liệu...</div>
+    </div>
+  </div>
+
+  <!-- Price history chart -->
+  <div class="chart-card">
+    <div class="chart-title">Biến động giá — các kỳ điều hành 2026</div>
+    <div class="chart-sub">Nguồn: Liên Bộ Công Thương – Tài chính · Đơn vị: đồng/lít</div>
+    <div class="chart-wrap">
+      <canvas id="historyChart" role="img" aria-label="Biểu đồ biến động giá xăng dầu qua các kỳ điều hành năm 2026">RON 95 và E5 RON 92 biến động qua các kỳ điều hành</canvas>
+    </div>
+  </div>
+
+  <footer>
+    <span>Nguồn: moit.gov.vn · petrolimex.com.vn · pvoil.com.vn</span>
+    <span id="footer-time">Cập nhật: —</span>
+  </footer>
+</div>
+
+<div class="settings-overlay" id="settings-overlay" onclick="toggleSettings()"></div>
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-title">⚙ Cài đặt</div>
+  <div class="settings-field">
+    <label>Tự động cập nhật mỗi</label>
+    <select id="input-interval">
+      <option value="0">Tắt</option>
+      <option value="5">5 phút</option>
+      <option value="15" selected>15 phút</option>
+      <option value="30">30 phút</option>
+      <option value="60">60 phút</option>
+    </select>
+  </div>
+  <div class="settings-hint" style="margin-top:-8px">Dữ liệu lấy trực tiếp từ PVOIL.com.vn — miễn phí</div>
+  <button class="btn-save" onclick="saveSettings()">Lưu & Cập nhật ngay</button>
+</div>
+
+<script>
+const CACHE_KEY = 'fuel_cache';
+const SETTINGS_KEY = 'fuel_settings';
+
+let chartInstance = null;
+let lastData = null;
+let currentRegion = 'v1';
+let refreshTimer = null;
+let countdownTimer = null;
+let nextRefreshTime = 0;
+
+function getSettings() {
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; }
+}
+function getApiKey() { return getSettings().apiKey || ''; }
+function getRefreshMin() { return getSettings().interval ?? 15; }
+
+function getCachedData() {
+  try {
+    const c = JSON.parse(localStorage.getItem(CACHE_KEY));
+    if (c && Date.now() - c.ts < getRefreshMin() * 60000) return c.data;
+  } catch {}
+  return null;
+}
+
+function setCacheData(data) {
+  localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
+}
+
+function fmt(n) {
+  if (!n && n !== 0) return '—';
+  return Number(n).toLocaleString('vi-VN');
+}
+
+function changeClass(val) {
+  if (val > 0) return 'up';
+  if (val < 0) return 'down';
+  return 'neutral';
+}
+
+function changeSign(val) {
+  if (val > 0) return '+' + fmt(val);
+  return fmt(val);
+}
+
+function getPrice(f) {
+  return currentRegion === 'v2' && f.priceV2 ? f.priceV2 : (f.price || 0);
+}
+
+function getPrev(f) {
+  return currentRegion === 'v2' && f.prevV2 ? f.prevV2 : (f.prev || 0);
+}
+
+function renderFuelCards(fuels) {
+  const grid = document.getElementById('fuel-grid');
+  const colors = ['c-amber','c-green','c-blue','c-purple','c-amber','c-green'];
+  grid.innerHTML = fuels.map((f, i) => {
+    const price = getPrice(f);
+    const prev = getPrev(f);
+    const change = price - prev;
+    const pct = prev ? (change / prev * 100) : 0;
+    return `
+    <div class="fuel-card ${colors[i % colors.length]}">
+      <div class="fuel-type">${f.code || ''}</div>
+      <div class="fuel-name">${f.name}</div>
+      <div class="fuel-price">${fmt(price)}</div>
+      <div class="fuel-unit">đồng / ${f.unit === 'kg' ? 'kg' : 'lít'}</div>
+      <div class="fuel-change ${changeClass(change)}">
+        ${change > 0 ? '▲' : change < 0 ? '▼' : '—'}
+        ${changeSign(change)} đ
+      </div>
+      <div class="fuel-meta">
+        <span>Trước: ${fmt(prev)}</span>
+        <span>${pct ? (pct > 0 ? '+' : '') + pct.toFixed(1) + '%' : '—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCompareBars(fuels) {
+  const prices = fuels.map(f => getPrice(f));
+  const max = Math.max(...prices);
+  const colors = ['#f5a623','#3ecf8e','#5b9cf6','#a78bfa','#f5a623','#3ecf8e'];
+  document.getElementById('compare-bars').innerHTML = fuels.map((f, i) => {
+    const price = prices[i];
+    return `
+    <div class="compare-item">
+      <div class="compare-label">
+        <span class="compare-name">${f.name}</span>
+        <span class="compare-val">${fmt(price)} đ/${f.unit === 'kg' ? 'kg' : 'lít'}</span>
+      </div>
+      <div class="compare-bar-bg">
+        <div class="compare-bar" style="width:${max ? (price/max*100).toFixed(1) : 0}%;background:${colors[i % colors.length]}"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSummary(data) {
+  document.getElementById('summary-grid').style.display = '';
+  const fuels = data.fuels || [];
+  const ron95 = fuels.find(f => f.code && f.code.includes('95') && !f.code.includes('E10'));
+  const e5 = fuels.find(f => f.code && f.code.includes('E5'));
+  const diff = (ron95 ? getPrice(ron95) : 0) - (e5 ? getPrice(e5) : 0);
+  document.getElementById('diff-val').textContent = fmt(diff);
+  document.getElementById('brent-val').textContent = data.brent ? data.brent + ' USD' : '—';
+  document.getElementById('next-adjust').textContent = data.nextAdjust || '—';
+}
+
+function renderHistory(history) {
+  const labels = history.dates || [];
+  const ron95 = history.ron95 || [];
+  const e5 = history.e5ron92 || [];
+  const diesel = history.diesel || [];
+
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(document.getElementById('historyChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'RON 95-III',
+          data: ron95,
+          borderColor: '#f5a623',
+          backgroundColor: 'rgba(245,166,35,0.08)',
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: '#f5a623',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2
+        },
+        {
+          label: 'E5 RON 92',
+          data: e5,
+          borderColor: '#3ecf8e',
+          backgroundColor: 'rgba(62,207,142,0.08)',
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: '#3ecf8e',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderDash: [5,3],
+          borderWidth: 2
+        },
+        {
+          label: 'Diesel 0.05S',
+          data: diesel,
+          borderColor: '#5b9cf6',
+          backgroundColor: 'rgba(91,156,246,0.06)',
+          tension: 0.4,
+          fill: false,
+          pointBackgroundColor: '#5b9cf6',
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          borderDash: [3,3],
+          borderWidth: 1.5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#181c24',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          titleColor: '#e8eaf0',
+          bodyColor: '#7a8099',
+          padding: 12,
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.raw)} đ`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#3d4258', font: { size: 10 }, maxRotation: 45 },
+          grid: { color: 'rgba(255,255,255,0.03)' },
+          border: { display: false }
+        },
+        y: {
+          ticks: {
+            color: '#3d4258',
+            font: { size: 10 },
+            callback: v => (v/1000).toFixed(0) + 'K'
+          },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          border: { display: false }
+        }
+      }
+    }
+  });
+
+  // Custom legend
+  const legendHtml = `
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:12px;font-size:12px;color:#7a8099;">
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:18px;height:2px;background:#f5a623;display:inline-block;border-radius:2px"></span>RON 95-III</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:18px;height:2px;background:#3ecf8e;display:inline-block;border-radius:2px;opacity:0.8"></span>E5 RON 92</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:18px;height:2px;background:#5b9cf6;display:inline-block;border-radius:2px;opacity:0.7"></span>Diesel 0.05S</span>
+    </div>
+  `;
+  const chartCard = document.getElementById('historyChart').closest('.chart-card');
+  if (!chartCard.querySelector('.legend-row')) {
+    const leg = document.createElement('div');
+    leg.className = 'legend-row';
+    leg.innerHTML = legendHtml;
+    chartCard.querySelector('.chart-wrap').before(leg);
+  }
+}
+
+const PVOIL_URL = 'https://www.pvoil.com.vn/tin-gia-xang-dau';
+const V2_DIFFS = {'RON 95-III':450,'E5 RON 92':460,'E10 RON 95':460,'DO 0.05S':660,'DO 0.001S':670,'Mazut':450};
+
+async function fetchPVOIL() {
+  const proxies = [
+    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+    u => 'https://corsproxy.io/?' + encodeURIComponent(u)
+  ];
+  let html = null;
+  for (const p of proxies) {
+    try {
+      const r = await fetch(p(PVOIL_URL), {signal: AbortSignal.timeout(15000)});
+      if (r.ok) { html = await r.text(); break; }
+    } catch {}
+  }
+  if (!html) throw new Error('Proxy fail');
+  return parsePVOIL(html);
+}
+
+function parsePVOIL(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const table = doc.querySelector('table');
+  if (!table) throw new Error('No table');
+  let adjustDate = '';
+  const thText = [...table.querySelectorAll('th')].map(h => h.textContent).join(' ');
+  const dm = thText.match(/(\d{1,2}:\d{2})\s+ngày\s+(\d{1,2}\/\d{1,2}\/\d{4})/);
+  if (dm) adjustDate = dm[2] + ' ' + dm[1];
+  const fuels = [];
+  table.querySelectorAll('tr').forEach(row => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length < 4) return;
+    const name = (cells[1]?.textContent || '').trim();
+    const price = parseInt((cells[2]?.textContent || '').replace(/[^\d]/g, ''), 10);
+    const change = parseInt((cells[3]?.textContent || '').replace(/[^\d-]/g, ''), 10);
+    if (isNaN(price)) return;
+    let code = '', unit = 'lít';
+    if (name.includes('E10') && name.includes('95')) code = 'E10 RON 95';
+    else if (name.includes('E5') && name.includes('92')) code = 'E5 RON 92';
+    else if (name.includes('RON 95')) code = 'RON 95-III';
+    else if (/0[,.]05S/.test(name)) code = 'DO 0.05S';
+    else if (/0[,.]001S/.test(name)) code = 'DO 0.001S';
+    else if (/mazut/i.test(name)) { code = 'Mazut'; unit = 'kg'; }
+    else return;
+    const d = V2_DIFFS[code] || 0;
+    const prev = price - (isNaN(change) ? 0 : change);
+    fuels.push({code, name, price, priceV2: price + d, prev, prevV2: prev + d, unit});
+  });
+  if (!fuels.length) throw new Error('No data parsed');
+  const order = ['RON 95-III','E5 RON 92','E10 RON 95','DO 0.05S','DO 0.001S','Mazut'];
+  fuels.sort((a, b) => order.indexOf(a.code) - order.indexOf(b.code));
+  const r95 = fuels.find(f => f.code === 'RON 95-III');
+  const dsl = fuels.find(f => f.code === 'DO 0.05S');
+  let summary = 'Kỳ điều hành ' + (adjustDate || 'mới nhất') + '. ';
+  if (r95) { const c = r95.price - r95.prev; summary += `RON 95-III <strong>${c < 0 ? 'giảm' : 'tăng'} ${fmt(Math.abs(c))}</strong> đ/lít`; }
+  if (dsl) { const c = dsl.price - dsl.prev; summary += `, Diesel <strong>${c < 0 ? 'giảm' : 'tăng'} ${fmt(Math.abs(c))}</strong> đ/lít`; }
+  summary += '.';
+  return {adjustDate, nextAdjust: null, brent: null, summary, fuels, history: null};
+}
+
+async function fetchPrices(force) {
+  const btn = document.getElementById('btn-refresh');
+  const pulse = document.getElementById('pulse');
+  const syncLabel = document.getElementById('sync-label');
+
+  if (!force) {
+    const cached = getCachedData();
+    if (cached) {
+      lastData = cached;
+      applyData(cached);
+      scheduleRefresh();
+      return;
+    }
+  }
+
+  btn.classList.add('spinning');
+  pulse.className = 'pulse loading';
+  syncLabel.textContent = 'Đang cập nhật từ PVOIL...';
+
+  try {
+    const data = await fetchPVOIL();
+    if (!data.history) data.history = (lastData || getFallback()).history;
+    lastData = data;
+    setCacheData(data);
+    applyData(data);
+  } catch(err) {
+    console.warn('PVOIL:', err.message);
+    lastData = lastData || getFallback();
+    applyData(lastData);
+    pulse.className = 'pulse error';
+    syncLabel.textContent = 'Dùng dữ liệu dự phòng';
+  } finally {
+    btn.classList.remove('spinning');
+    scheduleRefresh();
+  }
+}
+
+function getFallback() {
+  return {
+    adjustDate: "09/04/2026 15:30",
+    nextAdjust: "~19/04/2026",
+    brent: null,
+    summary: "Giá xăng dầu <strong>giảm mạnh</strong> từ 15:30 ngày 9/4/2026 theo kỳ điều hành của Liên Bộ CT–TC. RON 95-III giảm 2.990 đồng/lít, dầu diesel 0.05S giảm kỷ lục 9.880 đồng/lít. Đây là mức giảm lớn nhất kể từ đầu năm 2026.",
+    fuels: [
+      { code:"RON 95-III", name:"Xăng RON 95-III", price:23540, priceV2:23990, prev:26530, prevV2:26980, unit:"lít" },
+      { code:"E5 RON 92", name:"Xăng E5 RON 92-II", price:22340, priceV2:22800, prev:24730, prevV2:25190, unit:"lít" },
+      { code:"E10 RON 95", name:"Xăng E10 RON 95-III", price:23070, priceV2:23530, prev:25690, prevV2:26150, unit:"lít" },
+      { code:"DO 0.05S", name:"Dầu Diesel 0.05S-II", price:32960, priceV2:33620, prev:42840, prevV2:43500, unit:"lít" },
+      { code:"DO 0.001S", name:"Dầu Diesel 0.001S-V", price:33960, priceV2:34630, prev:43240, prevV2:43910, unit:"lít" },
+      { code:"Mazut", name:"Dầu Mazut 180CST 3.5S", price:22610, priceV2:23060, prev:24270, prevV2:24720, unit:"kg" }
+    ],
+    history: {
+      dates: ["19/3","24/3","25/3","27/3","2/4","3/4","8/4","9/4"],
+      ron95:  [30690, 27420, 25530, 26580, 27100, 26970, 26530, 23540],
+      e5ron92:[29340, 26230, 24430, 25370, 25890, 25421, 24730, 22340],
+      diesel: [35400, 40841, 38903, 38150, 42780, 44787, 42840, 32960]
+    }
+  };
+}
+
+function applyData(d) {
+  const pulse = document.getElementById('pulse');
+  const syncLabel = document.getElementById('sync-label');
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
+  const dateStr = now.toLocaleDateString('vi-VN');
+
+  document.getElementById('ai-summary').innerHTML = d.summary || '—';
+  document.getElementById('price-date').textContent = `Kỳ điều hành: ${d.adjustDate || '—'}`;
+  document.getElementById('footer-time').textContent = `Cập nhật: ${dateStr} ${timeStr}`;
+
+  const fuels = d.fuels || [];
+  renderFuelCards(fuels);
+  renderCompareBars(fuels);
+  renderSummary(d);
+  if (d.history) renderHistory(d.history);
+  pulse.className = 'pulse';
+  syncLabel.textContent = `Cập nhật lúc ${timeStr}`;
+}
+
+function setRegion(region) {
+  currentRegion = region;
+  document.querySelectorAll('.region-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.region === region);
+  });
+  if (lastData) applyData(lastData);
+}
+
+function scheduleRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  if (countdownTimer) clearInterval(countdownTimer);
+  const min = getRefreshMin();
+  if (min <= 0) {
+    document.getElementById('countdown').textContent = '';
+    return;
+  }
+  const ms = min * 60000;
+  nextRefreshTime = Date.now() + ms;
+  refreshTimer = setInterval(() => fetchPrices(true), ms);
+  countdownTimer = setInterval(updateCountdown, 1000);
+  updateCountdown();
+}
+
+function updateCountdown() {
+  const el = document.getElementById('countdown');
+  const diff = Math.max(0, nextRefreshTime - Date.now());
+  if (diff <= 0) { el.textContent = ''; return; }
+  const m = Math.floor(diff / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  el.textContent = `↻ ${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function toggleSettings() {
+  const overlay = document.getElementById('settings-overlay');
+  const panel = document.getElementById('settings-panel');
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  overlay.classList.toggle('open');
+  if (!isOpen) {
+    const s = getSettings();
+    document.getElementById('input-interval').value = String(s.interval ?? 15);
+  }
+}
+
+function saveSettings() {
+  const interval = parseInt(document.getElementById('input-interval').value, 10);
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ interval }));
+  localStorage.removeItem(CACHE_KEY);
+  toggleSettings();
+  fetchPrices(true);
+}
+
+fetchPrices();
+</script>
+</body>
+</html>
