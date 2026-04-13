@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview bài đăng Facebook — Chart vs Infographic</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f172a; color: #e2e8f0; font-family: -apple-system, 'Segoe UI', sans-serif; padding: 20px; }
+  h1 { text-align: center; margin-bottom: 8px; color: #60a5fa; font-size: 1.4rem; }
+  .subtitle { text-align: center; color: #94a3b8; margin-bottom: 24px; font-size: 13px; }
+
+  .mode-tabs { display: flex; justify-content: center; gap: 0; margin-bottom: 20px; }
+  .mode-tab { padding: 12px 32px; font-size: 15px; font-weight: 700; cursor: pointer; border: 2px solid #334155; background: transparent; color: #94a3b8; transition: all 0.2s; }
+  .mode-tab:first-child { border-radius: 10px 0 0 10px; }
+  .mode-tab:last-child { border-radius: 0 10px 10px 0; }
+  .mode-tab.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+  .mode-tab:hover:not(.active) { border-color: #60a5fa; color: #e2e8f0; }
+
+  .slot-btns { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+  .slot-btn { padding: 8px 20px; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #1e293b; color: #94a3b8; }
+  .slot-btn.active { color: #fff; }
+  .slot-btn.active.morning { background: #f59e0b; }
+  .slot-btn.active.noon { background: #ef4444; }
+  .slot-btn.active.evening { background: #6366f1; }
+
+  .status { text-align: center; color: #94a3b8; margin: 10px 0; font-size: 13px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 6px; }
+  .badge-free { background: #22c55e22; color: #22c55e; }
+  .badge-limit { background: #f59e0b22; color: #f59e0b; }
+
+  .preview-container { max-width: 680px; margin: 0 auto; }
+  .fb-post { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
+  .fb-header { padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  .fb-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #ef4444); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .fb-name { font-weight: 700; color: #1a1a2e; font-size: 15px; }
+  .fb-time { color: #65676b; font-size: 13px; }
+  .fb-image { width: 100%; background: #0f172a; min-height: 200px; }
+  .fb-image img { width: 100%; display: block; }
+  .fb-caption { padding: 14px 16px; color: #1c1e21; font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; max-height: 260px; overflow-y: auto; }
+  .fb-actions { padding: 8px 16px 12px; border-top: 1px solid #e4e6eb; display: flex; gap: 4px; }
+  .fb-actions span { flex: 1; text-align: center; padding: 8px; color: #65676b; font-weight: 600; font-size: 14px; border-radius: 6px; cursor: default; }
+
+  .rec-box { max-width: 680px; margin: 24px auto; background: #1e293b; border-radius: 12px; padding: 20px 24px; border: 1px solid #334155; }
+  .rec-title { font-size: 15px; font-weight: 700; color: #f59e0b; margin-bottom: 12px; }
+  .rec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .rec-table th { text-align: left; padding: 8px 12px; color: #94a3b8; border-bottom: 1px solid #334155; font-weight: 600; }
+  .rec-table td { padding: 8px 12px; border-bottom: 1px solid #1e293b; }
+  .rec-table tr:last-child td { border-bottom: none; }
+  .rec-note { margin-top: 14px; padding: 12px 16px; background: #0f172a; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.6; }
+
+  .infographic-card {
+    width: 100%; font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(160deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    color: #f1f5f9; overflow: hidden;
+  }
+  .ig-header {
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    padding: 22px 28px; text-align: center;
+  }
+  .ig-header-sub { font-size: 13px; opacity: 0.9; letter-spacing: 2px; text-transform: uppercase; }
+  .ig-header-main { font-size: 30px; font-weight: 900; margin: 4px 0; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .ig-header-date { font-size: 14px; opacity: 0.9; }
+  .ig-meta { text-align: center; padding: 10px 20px; background: rgba(255,255,255,0.04); font-size: 13px; color: #94a3b8; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+  .ig-prices { padding: 18px 22px; }
+  .ig-fuel { display: flex; align-items: center; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+  .ig-fuel-info { flex: 1; }
+  .ig-fuel-type { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+  .ig-fuel-name { font-size: 16px; font-weight: 700; margin-top: 2px; }
+  .ig-fuel-price { text-align: right; }
+  .ig-fuel-amount { font-size: 24px; font-weight: 900; }
+  .ig-fuel-unit { font-size: 12px; font-weight: 400; opacity: 0.7; }
+  .ig-fuel-change { font-size: 12px; margin-top: 2px; }
+  .ig-tip { margin: 0 22px 16px; padding: 14px 16px; background: rgba(96,165,250,0.1); border-left: 3px solid #60a5fa; border-radius: 0 8px 8px 0; font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+  .ig-footer { background: rgba(255,255,255,0.04); padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; }
+  .ig-footer-brand { font-size: 11px; color: #94a3b8; }
+  .ig-footer-url { font-size: 15px; font-weight: 700; color: #60a5fa; }
+  .loading-spinner { text-align: center; padding: 60px 20px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<h1>So sánh: Chart vs Infographic</h1>
+<p class="subtitle">Xem trước bài đăng Facebook — chọn kiểu hiển thị bạn thích</p>
+
+<div class="mode-tabs">
+  <div class="mode-tab active" onclick="switchMode('chart')">📊 Chart <span class="badge badge-free">FREE 500/tháng</span></div>
+  <div class="mode-tab" onclick="switchMode('infographic')">🎨 Infographic <span class="badge badge-limit">FREE 50/tháng</span></div>
+</div>
+
+<div class="slot-btns">
+  <button class="slot-btn morning active" onclick="switchSlot('morning')">🌅 Sáng</button>
+  <button class="slot-btn noon" onclick="switchSlot('noon')">☀️ Trưa</button>
+  <button class="slot-btn evening" onclick="switchSlot('evening')">🌙 Tối</button>
+</div>
+
+<div id="status" class="status">Đang tải...</div>
+
+<div class="preview-container">
+  <div class="fb-post">
+    <div class="fb-header">
+      <div class="fb-avatar">⛽</div>
+      <div>
+        <div class="fb-name">Giá Xăng Dầu Việt Nam</div>
+        <div class="fb-time">Vừa xong · 🌐</div>
+      </div>
+    </div>
+    <div class="fb-image" id="imageArea">
+      <div class="loading-spinner">⏳ Đang tạo hình ảnh...</div>
+    </div>
+    <div class="fb-caption" id="captionArea"></div>
+    <div class="fb-actions">
+      <span>👍 Thích</span><span>💬 Bình luận</span><span>↗️ Chia sẻ</span>
+    </div>
+  </div>
+</div>
+
+<div class="rec-box">
+  <div class="rec-title">💡 Đề xuất chiến lược tối ưu (hoàn toàn miễn phí)</div>
+  <table class="rec-table">
+    <tr><th>Buổi</th><th>Kiểu ảnh</th><th>Lý do</th></tr>
+    <tr><td>🌅 Sáng (7h)</td><td>🎨 Infographic</td><td>Bài quan trọng nhất, cần đẹp nhất</td></tr>
+    <tr><td>☀️ Trưa (13h)</td><td>📊 Chart</td><td>Cập nhật nhanh, tiết kiệm quota</td></tr>
+    <tr><td>🌙 Tối (19h)</td><td>📊 Chart</td><td>Cập nhật nhanh, tiết kiệm quota</td></tr>
+  </table>
+  <div class="rec-note">
+    📌 <b>Tổng cộng/tháng:</b> 30 infographic (của 50 miễn phí) + 60 chart (của 500 miễn phí) = <b>0 đồng</b><br>
+    📌 Infographic cho bài sáng = bài đẹp nhất khi nhiều người xem nhất<br>
+    📌 Nếu hết quota infographic → tự động fallback sang chart
+  </div>
+</div>
+
+<script>
+const SAMPLE_DATA = {
+  adjustDate: '10/04/2026 15:00',
+  fuels: [
+    { name: 'Xăng RON 95-III', price: 25020, change: 350 },
+    { name: 'Xăng E5 RON 92-II', price: 23720, change: 310 },
+    { name: 'Dầu DO 0,05S-II', price: 21360, change: -120 },
+    { name: 'Dầu hoả 2-K', price: 22180, change: 0 },
+  ]
+};
+
+let currentData = SAMPLE_DATA;
+let currentMode = 'chart';
+let currentSlot = 'morning';
+let chartCache = {};
+
+function formatPrice(n) {
+  return Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function getFuelStyle(name) {
+  const n = name.toLowerCase();
+  if (n.includes('ron 95') || n.includes('ron95')) return { bg: 'rgba(239,68,68,0.85)', border: '#ef4444', icon: '🔴', color: '#ef4444', bgLight: 'rgba(239,68,68,0.08)' };
+  if (n.includes('e5') || n.includes('ron 92') || n.includes('ron92')) return { bg: 'rgba(34,197,94,0.85)', border: '#22c55e', icon: '🟢', color: '#22c55e', bgLight: 'rgba(34,197,94,0.08)' };
+  if (n.includes('do ') || n.includes('diesel')) return { bg: 'rgba(251,191,36,0.85)', border: '#fbbf24', icon: '🟡', color: '#fbbf24', bgLight: 'rgba(251,191,36,0.08)' };
+  if (n.includes('hoả') || n.includes('hoa')) return { bg: 'rgba(96,165,250,0.85)', border: '#60a5fa', icon: '🔵', color: '#60a5fa', bgLight: 'rgba(96,165,250,0.08)' };
+  return { bg: 'rgba(148,163,184,0.85)', border: '#94a3b8', icon: '⚪', color: '#94a3b8', bgLight: 'rgba(148,163,184,0.08)' };
+}
+
+function getDayOfWeek() {
+  return ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'][new Date().getDay()];
+}
+function getDayOfYear() {
+  const now = new Date(), start = new Date(now.getFullYear(), 0, 0);
+  return Math.floor((now - start) / 86400000);
+}
+function pickRandom(arr, seed) { return arr[seed % arr.length]; }
+
+function getTrend(fuels) {
+  const up = fuels.some(f => f.change > 0), down = fuels.some(f => f.change < 0);
+  if (up && down) return { text: 'Tăng giảm đan xen', icon: '↕️' };
+  if (up) return { text: 'Xu hướng TĂNG', icon: '📈' };
+  if (down) return { text: 'Xu hướng GIẢM', icon: '📉' };
+  return { text: 'Giữ nguyên', icon: '➡️' };
+}
+
+const greetings = {
+  morning: ['🌅 Chào buổi sáng','☀️ Tràn đầy năng lượng','🌄 Ngày mới vui vẻ','🌞 Chúc hiệu quả','☕ Cà phê xong cập nhật giá xăng'],
+  noon: ['🔔 Cập nhật giữa ngày','📢 Bản tin trưa','☀️ Giá nhiên liệu mới nhất','📋 Nắm giá trước khi ra đường','🕐 Kiểm tra giá xăng ngay'],
+  evening: ['🌙 Tổng kết buổi tối','🌆 Cập nhật cuối ngày','🏠 Về nhà an toàn','✨ Cập nhật tối','🌃 Cùng xem giá xăng']
+};
+const tips = {
+  morning: ['Đổ xăng sáng sớm khi trời mát — nhiên liệu đậm đặc hơn!','Lái đều ga, tránh tăng tốc đột ngột — tiết kiệm 20% xăng!','Kiểm tra lốp mỗi sáng: lốp non hao 3-5% xăng!','Nên đổ xăng khi còn 1/4 bình — tránh cặn bẩn!','Xe nặng tiêu thụ tăng 1% cho mỗi 50kg hàng thừa.'],
+  noon: ['Hạn chế bật điều hoà ở tốc độ thấp — mở cửa sổ tiết kiệm hơn!','Chạy 60-80 km/h là tốc độ tiết kiệm xăng nhất.','Đỗ xe dưới bóng mát giúp giảm bay hơi xăng.','Sử dụng chế độ ECO — tiết kiệm 5-15% nhiên liệu!','Lên kế hoạch lộ trình trước để tránh đi vòng.'],
+  evening: ['Tắt máy khi dừng đỗ quá 30 giây — tiết kiệm 5-10%!','Bảo dưỡng xe định kỳ tiết kiệm đến 15% nhiên liệu.','Đổ xăng ở cây xăng uy tín — bảo vệ động cơ!','Giảm tải đồ thừa trong cốp — nhẹ hơn = ít xăng hơn!','Kiểm tra giá xăng trên giaxangdau.pages.dev trước khi đổ!']
+};
+
+function buildCaption(data, slot) {
+  const { adjustDate, fuels } = data;
+  const today = new Date().toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const time = new Date().toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
+  const dayName = getDayOfWeek(), doy = getDayOfYear();
+  const greeting = pickRandom(greetings[slot], doy) + ' ' + dayName + '!';
+  const tip = '💡 ' + pickRandom(tips[slot], doy);
+  const trend = getTrend(fuels);
+  let c = `${greeting}\n⛽ GIÁ XĂNG DẦU HÔM NAY\n📅 ${dayName}, ${today} — ${time}\n🗓️ Kỳ điều hành: ${adjustDate || 'Mới nhất'}\n${trend.icon} ${trend.text}\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n`;
+  for (const f of fuels) {
+    const s = getFuelStyle(f.name);
+    const arrow = f.change < 0 ? '🔻' : f.change > 0 ? '🔺' : '▪️';
+    const chg = f.change !== 0 ? ` (${f.change > 0 ? '+' : '-'}${formatPrice(f.change)})` : '';
+    c += `${s.icon} ${f.name}: ${formatPrice(f.price)} đ/L ${arrow}${chg}\n`;
+  }
+  c += `\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n${tip}\n\n📊 Chi tiết: https://giaxangdau.pages.dev\n\n❤️ Like + Share giúp mọi người cùng cập nhật!\n💬 Giá xăng khu vực bạn bao nhiêu?\n\n#giaxangdau #giaxanghomkay #xangdau #RON95 #E5RON92 #diesel #giaxang #giaxangmoinhat`;
+  return c;
+}
+
+function buildInfographicHtml(data, slot) {
+  const { adjustDate, fuels } = data;
+  const today = new Date().toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const dayName = getDayOfWeek(), doy = getDayOfYear();
+  const trend = getTrend(fuels);
+  const tip = pickRandom(tips[slot], doy);
+  const headerGradients = {
+    morning: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
+    noon: 'linear-gradient(135deg, #ef4444 0%, #ec4899 100%)',
+    evening: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+  };
+
+  let fuelsHtml = '';
+  for (const f of fuels) {
+    const s = getFuelStyle(f.name);
+    const changeColor = f.change > 0 ? '#ef4444' : f.change < 0 ? '#22c55e' : '#94a3b8';
+    const arrow = f.change > 0 ? '▲' : f.change < 0 ? '▼' : '—';
+    const changeText = f.change !== 0 ? `${arrow} ${f.change > 0 ? '+' : '-'}${formatPrice(f.change)} đ` : '— Không đổi';
+    fuelsHtml += `
+      <div style="display:flex;align-items:center;background:${s.bgLight};border-left:4px solid ${s.color};border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">${s.icon} Nhiên liệu</div>
+          <div style="font-size:17px;font-weight:800;color:#f1f5f9;margin-top:3px;">${f.name}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:26px;font-weight:900;color:${s.color};">${formatPrice(f.price)} <span style="font-size:13px;font-weight:500;opacity:0.7;">đ/L</span></div>
+          <div style="font-size:12px;color:${changeColor};font-weight:600;margin-top:2px;">${changeText}</div>
+        </div>
+      </div>`;
+  }
+
+  return `<div style="width:600px;font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(160deg,#0f172a 0%,#1e293b 40%,#0f172a 100%);color:#f1f5f9;overflow:hidden;">
+  <div style="background:${headerGradients[slot]};padding:24px 28px;text-align:center;">
+    <div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;opacity:0.9;">⛽ Cập nhật giá xăng dầu</div>
+    <div style="font-size:34px;font-weight:900;margin:6px 0;text-shadow:0 2px 10px rgba(0,0,0,0.2);">HÔM NAY</div>
+    <div style="font-size:15px;opacity:0.95;">📅 ${dayName}, ${today}</div>
+  </div>
+  <div style="display:flex;justify-content:center;gap:20px;padding:12px 20px;background:rgba(255,255,255,0.03);flex-wrap:wrap;">
+    <span style="font-size:12px;color:#94a3b8;">🗓️ Kỳ ĐH: ${adjustDate || 'Mới nhất'}</span>
+    <span style="font-size:12px;color:#94a3b8;">${trend.icon} ${trend.text}</span>
+  </div>
+  <div style="padding:18px 22px;">${fuelsHtml}</div>
+  <div style="margin:0 22px 18px;padding:14px 16px;background:rgba(96,165,250,0.08);border-left:3px solid #60a5fa;border-radius:0 10px 10px 0;">
+    <div style="font-size:13px;color:#cbd5e1;line-height:1.5;">💡 ${tip}</div>
+  </div>
+  <div style="background:rgba(255,255,255,0.04);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Chi tiết & biểu đồ</div>
+      <div style="font-size:16px;font-weight:800;color:#60a5fa;">giaxangdau.pages.dev</div>
+    </div>
+    <div style="font-size:11px;color:#475569;text-align:right;">❤️ Like & Share<br>giúp mọi người cập nhật</div>
+  </div>
+</div>`;
+}
+
+async function generateChartUrl(data) {
+  const { fuels, adjustDate } = data;
+  const today = new Date().toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const fuelLabels = fuels.map(f => {
+    if (f.change === 0) return f.name;
+    return f.name + (f.change > 0 ? '  ▲ +' : '  ▼ ') + formatPrice(Math.abs(f.change));
+  });
+  const subtitle = today + (adjustDate ? '   •   Kỳ ĐH: ' + adjustDate : '');
+  const config = {
+    type: 'horizontalBar',
+    data: {
+      labels: fuelLabels,
+      datasets: [{ data: fuels.map(f => f.price), backgroundColor: fuels.map(f => getFuelStyle(f.name).bg), borderColor: fuels.map(f => getFuelStyle(f.name).border), borderWidth: 2, barPercentage: 0.7, categoryPercentage: 0.85 }]
+    },
+    options: {
+      title: { display: true, text: ['⛽  GIÁ XĂNG DẦU HÔM NAY', subtitle, 'giaxangdau.pages.dev'], fontSize: 20, fontColor: '#f1f5f9', fontStyle: 'bold', padding: 20, lineHeight: 1.6 },
+      legend: { display: false },
+      layout: { padding: { left: 15, right: 90, top: 5, bottom: 15 } },
+      scales: {
+        xAxes: [{ ticks: { fontColor: '#94a3b8', fontSize: 11, beginAtZero: true, callback: 'TICK_CB' }, gridLines: { color: 'rgba(148,163,184,0.12)', zeroLineColor: 'rgba(148,163,184,0.25)' } }],
+        yAxes: [{ ticks: { fontColor: '#f1f5f9', fontSize: 14, fontStyle: 'bold' }, gridLines: { display: false } }]
+      },
+      plugins: { datalabels: { anchor: 'end', align: 'end', color: '#ffffff', font: { weight: 'bold', size: 15 }, formatter: 'LABEL_CB' } }
+    }
+  };
+  let cs = JSON.stringify(config);
+  cs = cs.replace('"TICK_CB"', "function(v){return v===0?'0':(v/1000).toFixed(0)+'k'}");
+  cs = cs.replace('"LABEL_CB"', "function(v){return v.toLocaleString('vi-VN')+' đ'}");
+  const resp = await fetch('https://quickchart.io/chart/create', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ backgroundColor: '#0f172a', width: 800, height: Math.max(400, 100 + fuels.length * 85), devicePixelRatio: 2, format: 'png', chart: cs })
+  });
+  const result = await resp.json();
+  if (!result.success) throw new Error('QuickChart: ' + (result.message || 'failed'));
+  return result.url;
+}
+
+async function renderPreview() {
+  const imageArea = document.getElementById('imageArea');
+  const captionArea = document.getElementById('captionArea');
+  const statusEl = document.getElementById('status');
+  const slotName = { morning: 'sáng', noon: 'trưa', evening: 'tối' }[currentSlot];
+  captionArea.textContent = buildCaption(currentData, currentSlot);
+
+  if (currentMode === 'infographic') {
+    statusEl.textContent = `🎨 Infographic — buổi ${slotName}`;
+    const html = buildInfographicHtml(currentData, currentSlot);
+    imageArea.innerHTML = `<div style="background:#0f172a;padding:0;display:flex;justify-content:center;">${html}</div>`;
+  } else {
+    const cacheKey = 'chart_' + currentSlot;
+    if (chartCache[cacheKey]) {
+      imageArea.innerHTML = `<img src="${chartCache[cacheKey]}" alt="Chart">`;
+      statusEl.textContent = `📊 Chart — buổi ${slotName}`;
+      return;
+    }
+    imageArea.innerHTML = '<div class="loading-spinner">⏳ Đang tạo biểu đồ từ QuickChart.io...</div>';
+    statusEl.textContent = 'Đang tạo chart...';
+    try {
+      const url = await generateChartUrl(currentData);
+      chartCache[cacheKey] = url;
+      imageArea.innerHTML = `<img src="${url}" alt="Chart">`;
+      statusEl.textContent = `📊 Chart — buổi ${slotName}`;
+    } catch (err) {
+      imageArea.innerHTML = `<div class="loading-spinner" style="color:#ef4444;">❌ ${err.message}</div>`;
+      statusEl.textContent = '❌ Lỗi tạo chart';
+    }
+  }
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.mode-tab')[mode === 'chart' ? 0 : 1].classList.add('active');
+  renderPreview();
+}
+
+function switchSlot(slot) {
+  currentSlot = slot;
+  document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.slot-btn.' + slot).classList.add('active');
+  renderPreview();
+}
+
+async function init() {
+  try {
+    const resp = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.pvoil.com.vn/tin-gia-xang-dau'));
+    if (resp.ok) {
+      const html = await resp.text();
+      const dm = html.match(/(\d{1,2}:\d{2})\s+ngày\s+(\d{1,2}\/\d{1,2}\/\d{4})/);
+      const fuels = [];
+      const rr = /<tr[^>]*>[\s\S]*?<td[^>]*>(\d+)<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>[\s\S]*?<\/tr>/gi;
+      let m;
+      while ((m = rr.exec(html)) !== null) {
+        const name = m[2].replace(/<[^>]+>/g, '').trim();
+        const price = parseInt(m[3].replace(/<[^>]+>/g, '').replace(/[^\d]/g, ''), 10);
+        const change = parseInt(m[4].replace(/<[^>]+>/g, '').replace(/[^\d-]/g, ''), 10);
+        if (!isNaN(price)) fuels.push({ name, price, change: isNaN(change) ? 0 : change });
+      }
+      if (fuels.length > 0) {
+        currentData = { adjustDate: dm ? dm[2] + ' ' + dm[1] : '', fuels };
+        document.getElementById('status').textContent = '✅ Dữ liệu thực từ PVOIL';
+      }
+    }
+  } catch (e) { console.warn('Using sample data'); }
+  renderPreview();
+}
+
+init();
+</script>
+</body>
+</html>
